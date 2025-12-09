@@ -8,7 +8,7 @@ let depthMax = 200;
 let fileInput;
 let dotSize = 5;
 let time = 0;
-
+let viewZ = -400;
 let targetRotX = 0;
 let targetRotY = 0;
 let rotX = 0;
@@ -44,6 +44,7 @@ function setupParticles() {
   // compute scale factor so the artwork fits inside the canvas nicely
   // adjust the multiplier (0.45) to change how much of the canvas the art occupies
   let scaleFactor = min(width / img.width, height / img.height) * 0.7;
+  viewZ = -700*scaleFactor;
 
   for (let x = 0; x < img.width; x += step) {
     for (let y = 0; y < img.height; y += step) {
@@ -87,7 +88,7 @@ function draw() {
 
   // push the whole scene back so the particles sit comfortably in view
   // the value below is in canvas units (since we pre-scaled positions)
-  translate(0, 0, -600);
+  translate(0, 0, viewZ);
 
   // only rotate while pressed (user "grabs" the art)
   if (mouseIsPressed) {
