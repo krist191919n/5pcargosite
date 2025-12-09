@@ -17,7 +17,7 @@ let targetRotX = 0;
 let targetRotY = 0;
 
 // sliders
-let dotSlider, stepSlider;
+let dotSlider, stepSlider,depthSlider;
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
@@ -41,6 +41,9 @@ function setup() {
   stepSlider.input(() => {
     if (img) setupParticles(); // rebuild particles immediately
   });
+   depthSlider = createSlider(0.1, 3.0, depthAmt, 0.01);
+  depthSlider.position(20, 110);
+  depthSlider.style('width', '150px');
 }
 
 function handleFile(file) {
@@ -116,7 +119,7 @@ function draw() {
   rotateX(rotX);
   rotateY(rotY);
 
-  depthAmt = constrain(depthAmt, 0.2, 2.0);
+  depthAmt = depthSlider.value();
   dotSize = dotSlider.value();
 
   noStroke();
