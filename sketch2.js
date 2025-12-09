@@ -6,7 +6,7 @@ let step = 20;
 let depthMin = -200;
 let depthMax = 200;
 let fileInput;
-let dotSize = 7;
+let dotSize = 5;
 let time = 0;
 
 let targetRotX = 0;
@@ -43,7 +43,7 @@ function setupParticles() {
 
   // compute scale factor so the artwork fits inside the canvas nicely
   // adjust the multiplier (0.45) to change how much of the canvas the art occupies
-  let scaleFactor = min(width / img.width, height / img.height) * 0.45;
+  let scaleFactor = min(width / img.width, height / img.height) * 0.7;
 
   for (let x = 0; x < img.width; x += step) {
     for (let y = 0; y < img.height; y += step) {
