@@ -5,7 +5,7 @@ let step =20;
 let depthMin = -200;
 let depthMax = 200;
 let fileInput;
-let dotSize = 2;
+let dotSize = 7;
 let time = 0;
 let targetRotX = 0;
 let targetRotY = 0;
@@ -42,7 +42,7 @@ function handleFile(file) {
 function setupParticles() {
   particles = [];
   img.loadPixels();
-  let step = 15;
+  let step = 20;
   let depthMin = -200;
   let depthMax = 200;
 
@@ -97,7 +97,7 @@ function draw() {
     let dz = lerp(0, p.z, depthAmt);
     translate(p.px, p.py, dz);
     fill(p.c);
-    box(dotSize);
+    box(dotSize, 6, 6);
     pop();
   }
 
