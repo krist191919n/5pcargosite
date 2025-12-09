@@ -1,19 +1,20 @@
-// sketch.js — robust, scaled particle positions with sliders
-
+// 3D Particle Image Viewer with Sliders
 let img;
 let particles = [];
+let fileInput;
+
+let dotSize = 5;
 let step = 20;
+
 let depthMin = -200;
 let depthMax = 200;
-let fileInput;
-let dotSize = 5;
-let time = 0;
+let depthAmt = 0.4;
 let viewZ = -400;
-let targetRotX = 0;
-let targetRotY = 0;
+
 let rotX = 0;
 let rotY = 0;
-let depthAmt = 0.4;
+let targetRotX = 0;
+let targetRotY = 0;
 
 // sliders
 let dotSlider, stepSlider;
@@ -46,7 +47,7 @@ function handleFile(file) {
   if (file.type === 'image') {
     img = loadImage(file.data, () => {
       console.log('Image loaded!');
-      setupParticles(); // build scaled particles now that img exists
+      setupParticles();
     });
   } else {
     console.error('Not an image file!');
@@ -59,10 +60,12 @@ function setupParticles() {
 
   img.loadPixels();
 
-  step = stepSlider.value(); // get current step
-  dotSize = dotSlider.value(); // get current dot size
+  // Get slider values
+  step = stepSlider.value();
+  dotSize = dotSlider.value();
 
-  let scaleFactor = min(width / img.width, height / img.height) * 1.4;
+  // Scale to fit canvas
+  let scaleFactor = min(width / img.width, height / img.height) * 1.5;
   viewZ = -800 * scaleFactor;
 
   for (let x = 0; x < img.width; x += step) {
@@ -77,6 +80,7 @@ function setupParticles() {
       let brightness = (r + g + b) / 3;
       let z = map(brightness, 0, 255, depthMin, depthMax);
 
+      // Center coordinates
       let px = x - img.width / 2;
       let py = y - img.height / 2;
 
@@ -84,15 +88,10 @@ function setupParticles() {
       let sy = py * scaleFactor;
       let sz = z * scaleFactor * 0.9;
 
-      particles.push({
-        px, py, z,
-        sx, sy, sz,
-        c: color(r, g, b)
-      });
+      particles.push({ px, py, z, sx, sy, sz, c: color(r, g, b) });
     }
   }
-
-  console.log('Particles created:', particles.length, 'scaleFactor:', scaleFactor);
+  console.log('Particles created:', particles.length);
 }
 
 function draw() {
@@ -100,14 +99,17 @@ function draw() {
 
   if (!img || particles.length === 0) return;
 
+  // Push scene back
   translate(0, 0, viewZ);
 
+  // Rotate only when mouse pressed
   if (mouseIsPressed) {
     targetRotY += movedX * 0.01;
     targetRotX -= movedY * 0.01;
     targetRotX = constrain(targetRotX, -PI / 2, PI / 2);
   }
 
+  // Smooth easing
   rotX = lerp(rotX, targetRotX, 0.08);
   rotY = lerp(rotY, targetRotY, 0.08);
 
@@ -115,7 +117,6 @@ function draw() {
   rotateY(rotY);
 
   depthAmt = constrain(depthAmt, 0.2, 2.0);
-
   dotSize = dotSlider.value();
 
   noStroke();
@@ -128,10 +129,12 @@ function draw() {
   }
 }
 
+// Zoom in/out with mouse wheel
+function mouseWheel(event) {
+  depthAmt += event.delta * -0.001;
+}
 
-
-
-// rebuild canvas & particles on resize
+// Rebuild on resize
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
   if (fileInput) fileInput.position(width / 2 - 60, 20);
