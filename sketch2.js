@@ -67,7 +67,7 @@ function setupParticles() {
 
 function draw() {
   background(0);
-  translate(widht/2, height/2, 0)
+  translate(-img.widht/2*scaleFactor, -img.height/2*scaleFactor, -400)
   translate(0, 0, -300);
   scale(0.6);
 
