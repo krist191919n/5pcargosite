@@ -87,7 +87,7 @@ function draw() {
 
   // push the whole scene back so the particles sit comfortably in view
   // the value below is in canvas units (since we pre-scaled positions)
-  translate(0, 0, -400);
+  translate(0, 0, -600);
 
   // only rotate while pressed (user "grabs" the art)
   if (mouseIsPressed) {
