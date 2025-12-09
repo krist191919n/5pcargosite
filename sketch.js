@@ -1,11 +1,11 @@
 // 3D Point-Cloud Animation — p5.js + CCapture
 let img;
 let particles = [];
-let step =15;
+let step =20;
 let depthMin = -200;
 let depthMax = 200;
 let fileInput;
-let dotSize = 3;
+let dotSize = 2;
 let time = 0;
 let targetRotX = 0;
 let targetRotY = 0;
@@ -42,7 +42,7 @@ function handleFile(file) {
 function setupParticles() {
   particles = [];
   img.loadPixels();
-  let step = 6;
+  let step = 15;
   let depthMin = -200;
   let depthMax = 200;
 
