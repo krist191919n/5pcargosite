@@ -1,40 +1,39 @@
+// sketch.js — robust, scaled particle positions so the image always fits & is centered
 
 let img;
 let particles = [];
-let step =20;
+let step = 20;
 let depthMin = -200;
 let depthMax = 200;
 let fileInput;
 let dotSize = 7;
 let time = 0;
+
 let targetRotX = 0;
 let targetRotY = 0;
 let rotX = 0;
 let rotY = 0;
 let depthAmt = 0.4;
 
-
-
-
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   pixelDensity(1);
 
-  // Create a file input
+  // Create a file input and float it above the canvas
   fileInput = createFileInput(handleFile);
-  fileInput.position(width/2-60,20);
-  fileInput.style('position','absolute');
-  fileInput.style('z-index','10');
+  fileInput.position(width / 2 - 60, 20);
+  fileInput.style('position', 'fixed');
+  fileInput.style('z-index', '10');
 }
 
 function handleFile(file) {
   if (file.type === 'image') {
     img = loadImage(file.data, () => {
-      console.log("Image loaded!");
-      setupParticles();   // rebuild depth points
+      console.log('Image loaded!');
+      setupParticles(); // build scaled particles now that img exists
     });
   } else {
-    console.error("Not an image file!");
+    console.error('Not an image file!');
   }
 }
 
@@ -42,9 +41,9 @@ function setupParticles() {
   particles = [];
   img.loadPixels();
 
-  const step = 20;
-  const depthMin = -200;
-  const depthMax = 200;
+  // compute scale factor so the artwork fits inside the canvas nicely
+  // adjust the multiplier (0.45) to change how much of the canvas the art occupies
+  let scaleFactor = min(width / img.width, height / img.height) * 0.45;
 
   for (let x = 0; x < img.width; x += step) {
     for (let y = 0; y < img.height; y += step) {
@@ -58,54 +57,80 @@ function setupParticles() {
       let brightness = (r + g + b) / 3;
       let z = map(brightness, 0, 255, depthMin, depthMax);
 
+      // original centered coordinates (image space)
+      let px = x - img.width / 2;
+      let py = y - img.height / 2;
+
+      // scaled coordinates in canvas space (WEBGL origin is canvas center)
+      let sx = px * scaleFactor;
+      let sy = py * scaleFactor;
+      let sz = z * scaleFactor * 0.9; // scale z a bit less so depth feels natural
+
       particles.push({
-        px: x - img.width / 2,
-        py: y - img.height / 2,
-        z,
+        px, py, z,
+        sx, sy, sz,
         c: color(r, g, b)
       });
     }
   }
 
-  console.log("Particles:", particles.length);
+  console.log('Particles created:', particles.length, 'scaleFactor:', scaleFactor);
 }
-// Smooth rotation state
 
 function draw() {
   background(0);
 
-  // Don't draw until image and particles exist
-  if (!img || particles.length === 0) return;
-
-  // Fit artwork to window (adjust 0.4 for size)
-  let scaleFactor = min(width / img.width, height / img.height) * 0.4;
-  scale(scaleFactor);
-
-  // Center artwork in WebGL space
-  translate(-img.width / 2, -img.height / 2, -400);
-
-  // Mouse rotation only while pressed
-  if (mouseIsPressed) {
-    targetRotY += movedX * 0.01;
-    targetRotX -= movedY * 0.01;
+  // nothing to draw until the user uploads an image
+  if (!img || particles.length === 0) {
+    return;
   }
 
+  // push the whole scene back so the particles sit comfortably in view
+  // the value below is in canvas units (since we pre-scaled positions)
+  translate(0, 0, -400);
+
+  // only rotate while pressed (user "grabs" the art)
+  if (mouseIsPressed) {
+    targetRotY += movedX * 0.01; // horizontal control (positive = right)
+    targetRotX -= movedY * 0.01; // vertical control (negative = move down tilts away)
+    targetRotX = constrain(targetRotX, -PI / 2, PI / 2);
+  }
+
+  // smooth easing
   rotX = lerp(rotX, targetRotX, 0.08);
   rotY = lerp(rotY, targetRotY, 0.08);
 
+  // apply rotation
   rotateX(rotX);
   rotateY(rotY);
 
-  depthAmt = constrain(depthAmt, 0.2, 1.8);
+  depthAmt = constrain(depthAmt, 0.2, 2.0);
 
   noStroke();
   for (let p of particles) {
     push();
-    translate(p.px, p.py, lerp(0, p.z, depthAmt));
+    // use precomputed scaled screen coords (sx, sy), and scale z by depthAmt
+    translate(p.sx, p.sy, lerp(0, p.sz, depthAmt));
     fill(p.c);
     box(dotSize);
     pop();
   }
+}
 
+// zoom with mouse wheel (flatten / pop)
+function mouseWheel(event) {
+  depthAmt += event.delta * -0.001;
+}
 
+// rebuild canvas & particles on resize so scaleFactor updates
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  // reposition file input in case width changed
+  if (fileInput) {
+    fileInput.position(width / 2 - 60, 20);
   }
+  // if we have an image, rebuild scaled particles
+  if (img) {
+    setupParticles();
+  }
+}
