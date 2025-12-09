@@ -43,8 +43,8 @@ function setupParticles() {
 
   // compute scale factor so the artwork fits inside the canvas nicely
   // adjust the multiplier (0.45) to change how much of the canvas the art occupies
-  let scaleFactor = min(width / img.width, height / img.height) * 0.7;
-  viewZ = -700*scaleFactor;
+  let scaleFactor = min(width / img.width, height / img.height) * 1.4;
+  viewZ = -800*scaleFactor;
 
   for (let x = 0; x < img.width; x += step) {
     for (let y = 0; y < img.height; y += step) {
