@@ -22,7 +22,9 @@ function setup() {
 
   // Create a file input
   fileInput = createFileInput(handleFile);
-  fileInput.position(10, 10);
+  fileInput.position(width/2-60,20);
+  fileInput.style('position','absolute');
+  fileInput.style('z-index','10');
 }
 
 function handleFile(file) {
@@ -65,6 +67,7 @@ function setupParticles() {
 
 function draw() {
   background(0);
+  translate(widht/2, height/2, 0)
   translate(0, 0, -300);
 
   // Only update target rotation WHILE dragging
