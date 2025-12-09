@@ -69,6 +69,7 @@ function draw() {
   background(0);
   translate(widht/2, height/2, 0)
   translate(0, 0, -300);
+  scale(0.6);
 
   // Only update target rotation WHILE dragging
   if (mouseIsPressed) {
