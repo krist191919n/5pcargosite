@@ -17,7 +17,8 @@ let depthAmt = 0.4;
 
 
 function setup() {
-  createCanvas(1080, 1080, WEBGL);
+  createCanvas(windowWidth, windowHeight, WEBGL);
+  pixelDensity(1);
 
   // Create a file input
   fileInput = createFileInput(handleFile);
@@ -64,7 +65,7 @@ function setupParticles() {
 
 function draw() {
   background(0);
-  translate(0, 0, -450);
+  translate(0, 0, -300);
 
   // Only update target rotation WHILE dragging
   if (mouseIsPressed) {
