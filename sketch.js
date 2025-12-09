@@ -3,7 +3,7 @@ let img;
 let particles = [];
 let step =20;
 let depthMin = -200;
-let depthMax = 200;
+let depthMax = 400;
 let fileInput;
 let dotSize = 7;
 let time = 0;
@@ -11,7 +11,8 @@ let targetRotX = 0;
 let targetRotY = 0;
 let rotX = 0;
 let rotY = 0;
-let depthAmt = 0.4;
+let depthAmt = 0.7;
+let viewZ = -400;
 
 let capturer;
 let capturing = true;        // set true to record video
@@ -40,11 +41,14 @@ function handleFile(file) {
 }
 
 function setupParticles() {
+  
   particles = [];
   img.loadPixels();
   let step = 20;
   let depthMin = -200;
-  let depthMax = 200;
+  let depthMax = 400;
+  let scaleFactor = min(width / img.width, height / img.height) * 0.45;
+viewZ = -700 * scaleFactor; // dynamically adjust camera distance
 
   for (let x = 0; x < img.width; x += step) {
     for (let y = 0; y < img.height; y += step) {
@@ -68,7 +72,7 @@ function setupParticles() {
 
 function draw() {
   background(0);
-  translate(0, 0, -450);
+  translate(0, 0, viewZ);
 
   // Only update target rotation WHILE dragging
   if (mouseIsPressed) {
