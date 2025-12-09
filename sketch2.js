@@ -30,75 +30,80 @@ function setup() {
 function handleFile(file) {
   if (file.type === 'image') {
     img = loadImage(file.data, () => {
-      console.log('Image loaded!');
-      setupParticles(); // rebuild particles array
+      console.log("Image loaded!");
+      setupParticles();   // rebuild depth points
     });
   } else {
-    console.error('Not an image file!');
+    console.error("Not an image file!");
   }
 }
 
 function setupParticles() {
   particles = [];
   img.loadPixels();
-  let step = 20;
-  let depthMin = -200;
-  let depthMax = 200;
+
+  const step = 20;
+  const depthMin = -200;
+  const depthMax = 200;
 
   for (let x = 0; x < img.width; x += step) {
     for (let y = 0; y < img.height; y += step) {
       let i = (x + y * img.width) * 4;
-      let r = img.pixels[i];
-      let g = img.pixels[i+1];
-      let b = img.pixels[i+2];
-      let a = img.pixels[i+3];
+      let a = img.pixels[i + 3];
       if (a < 10) continue;
-      let brightness = (r+g+b)/3;
-      let z = map(brightness,0,255,depthMin,depthMax);
-      let px = x - img.width/2;
-      let py = y - img.height/2;
-      particles.push({px, py, z, c: color(r,g,b)});
+
+      let r = img.pixels[i];
+      let g = img.pixels[i + 1];
+      let b = img.pixels[i + 2];
+      let brightness = (r + g + b) / 3;
+      let z = map(brightness, 0, 255, depthMin, depthMax);
+
+      particles.push({
+        px: x - img.width / 2,
+        py: y - img.height / 2,
+        z,
+        c: color(r, g, b)
+      });
     }
   }
-  console.log('Particles loaded:', particles.length);
-}
 
+  console.log("Particles:", particles.length);
+}
 // Smooth rotation state
 
 function draw() {
   background(0);
-  translate(-img.widht/2*scaleFactor, -img.height/2*scaleFactor, -400)
-  translate(0, 0, -300);
-  scale(0.6);
 
-  // Only update target rotation WHILE dragging
+  // Don't draw until image and particles exist
+  if (!img || particles.length === 0) return;
+
+  // Fit artwork to window (adjust 0.4 for size)
+  let scaleFactor = min(width / img.width, height / img.height) * 0.4;
+  scale(scaleFactor);
+
+  // Center artwork in WebGL space
+  translate(-img.width / 2, -img.height / 2, -400);
+
+  // Mouse rotation only while pressed
   if (mouseIsPressed) {
     targetRotY += movedX * 0.01;
     targetRotX -= movedY * 0.01;
   }
-  function mouseWheel(event) {
-  depthAmt += event.delta * -0.001;
-}
 
-  // Smooth easing toward target rotation
   rotX = lerp(rotX, targetRotX, 0.08);
   rotY = lerp(rotY, targetRotY, 0.08);
 
-  // Keep depth useful / safe
-  depthAmt = constrain(depthAmt, 0.2, 1.8);
-
-  // Apply rotation
   rotateX(rotX);
   rotateY(rotY);
 
-  // Draw particles
+  depthAmt = constrain(depthAmt, 0.2, 1.8);
+
   noStroke();
   for (let p of particles) {
     push();
-    let dz = lerp(0, p.z, depthAmt);
-    translate(p.px, p.py, dz);
+    translate(p.px, p.py, lerp(0, p.z, depthAmt));
     fill(p.c);
-    box(dotSize, 6, 6);
+    box(dotSize);
     pop();
   }
 
