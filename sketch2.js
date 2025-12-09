@@ -129,7 +129,7 @@ function draw() {
 }
 
 
-}
+
 
 // rebuild canvas & particles on resize
 function windowResized() {
