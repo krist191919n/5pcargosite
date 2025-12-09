@@ -1,4 +1,4 @@
-// sketch.js — robust, scaled particle positions so the image always fits & is centered
+// sketch.js — robust, scaled particle positions with sliders
 
 let img;
 let particles = [];
@@ -15,15 +15,31 @@ let rotX = 0;
 let rotY = 0;
 let depthAmt = 0.4;
 
+// sliders
+let dotSlider, stepSlider;
+
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   pixelDensity(1);
 
-  // Create a file input and float it above the canvas
+  // File input
   fileInput = createFileInput(handleFile);
   fileInput.position(width / 2 - 60, 20);
   fileInput.style('position', 'fixed');
   fileInput.style('z-index', '10');
+
+  // Dot size slider
+  dotSlider = createSlider(1, 20, dotSize, 1);
+  dotSlider.position(20, 50);
+  dotSlider.style('width', '150px');
+
+  // Step slider
+  stepSlider = createSlider(5, 50, step, 1);
+  stepSlider.position(20, 80);
+  stepSlider.style('width', '150px');
+  stepSlider.input(() => {
+    if (img) setupParticles(); // rebuild particles immediately
+  });
 }
 
 function handleFile(file) {
@@ -39,12 +55,15 @@ function handleFile(file) {
 
 function setupParticles() {
   particles = [];
+  if (!img) return;
+
   img.loadPixels();
 
-  // compute scale factor so the artwork fits inside the canvas nicely
-  // adjust the multiplier (0.45) to change how much of the canvas the art occupies
+  step = stepSlider.value(); // get current step
+  dotSize = dotSlider.value(); // get current dot size
+
   let scaleFactor = min(width / img.width, height / img.height) * 1.4;
-  viewZ = -800*scaleFactor;
+  viewZ = -800 * scaleFactor;
 
   for (let x = 0; x < img.width; x += step) {
     for (let y = 0; y < img.height; y += step) {
@@ -58,14 +77,12 @@ function setupParticles() {
       let brightness = (r + g + b) / 3;
       let z = map(brightness, 0, 255, depthMin, depthMax);
 
-      // original centered coordinates (image space)
       let px = x - img.width / 2;
       let py = y - img.height / 2;
 
-      // scaled coordinates in canvas space (WEBGL origin is canvas center)
       let sx = px * scaleFactor;
       let sy = py * scaleFactor;
-      let sz = z * scaleFactor * 0.9; // scale z a bit less so depth feels natural
+      let sz = z * scaleFactor * 0.9;
 
       particles.push({
         px, py, z,
@@ -81,36 +98,29 @@ function setupParticles() {
 function draw() {
   background(0);
 
-  // nothing to draw until the user uploads an image
-  if (!img || particles.length === 0) {
-    return;
-  }
+  if (!img || particles.length === 0) return;
 
-  // push the whole scene back so the particles sit comfortably in view
-  // the value below is in canvas units (since we pre-scaled positions)
   translate(0, 0, viewZ);
 
-  // only rotate while pressed (user "grabs" the art)
   if (mouseIsPressed) {
-    targetRotY += movedX * 0.01; // horizontal control (positive = right)
-    targetRotX -= movedY * 0.01; // vertical control (negative = move down tilts away)
+    targetRotY += movedX * 0.01;
+    targetRotX -= movedY * 0.01;
     targetRotX = constrain(targetRotX, -PI / 2, PI / 2);
   }
 
-  // smooth easing
   rotX = lerp(rotX, targetRotX, 0.08);
   rotY = lerp(rotY, targetRotY, 0.08);
 
-  // apply rotation
   rotateX(rotX);
   rotateY(rotY);
 
   depthAmt = constrain(depthAmt, 0.2, 2.0);
 
+  dotSize = dotSlider.value();
+
   noStroke();
   for (let p of particles) {
     push();
-    // use precomputed scaled screen coords (sx, sy), and scale z by depthAmt
     translate(p.sx, p.sy, lerp(0, p.sz, depthAmt));
     fill(p.c);
     box(dotSize);
@@ -118,20 +128,12 @@ function draw() {
   }
 }
 
-// zoom with mouse wheel (flatten / pop)
-function mouseWheel(event) {
-  depthAmt += event.delta * -0.001;
+
 }
 
-// rebuild canvas & particles on resize so scaleFactor updates
+// rebuild canvas & particles on resize
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
-  // reposition file input in case width changed
-  if (fileInput) {
-    fileInput.position(width / 2 - 60, 20);
-  }
-  // if we have an image, rebuild scaled particles
-  if (img) {
-    setupParticles();
-  }
+  if (fileInput) fileInput.position(width / 2 - 60, 20);
+  if (img) setupParticles();
 }
