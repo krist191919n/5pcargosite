@@ -16,12 +16,8 @@ let rotY = 0;
 let fileInput, dotSlider, stepSlider, depthSlider;
 let container;
 
-/* ---------------------------
-   SETUP
----------------------------- */
 function setup() {
   container = document.getElementById("p5-container");
-
   let w = container.offsetWidth;
   let h = container.offsetHeight;
 
@@ -32,9 +28,6 @@ function setup() {
   createUI();
 }
 
-/* ---------------------------
-   UI CREATION
----------------------------- */
 function createUI() {
   const ui = document.getElementById("ui-layer");
 
@@ -57,9 +50,6 @@ function createUI() {
   });
 }
 
-/* ---------------------------
-   LOAD IMAGE
----------------------------- */
 function handleFile(file) {
   if (file.type === "image") {
     img = loadImage(file.data, () => {
@@ -68,9 +58,6 @@ function handleFile(file) {
   }
 }
 
-/* ---------------------------
-   BUILD PARTICLES
----------------------------- */
 function setupParticles() {
   if (!img) return;
 
@@ -81,7 +68,7 @@ function setupParticles() {
   dotSize = dotSlider.value();
 
   let scaleFactor = min(width / img.width, height / img.height) * 1.4;
-  viewZ = -800 * scaleFactor;
+  viewZ = -img.height * scaleFactor; // more reasonable viewZ
 
   for (let x = 0; x < img.width; x += step) {
     for (let y = 0; y < img.height; y += step) {
@@ -107,9 +94,6 @@ function setupParticles() {
   }
 }
 
-/* ---------------------------
-   DRAW
----------------------------- */
 function draw() {
   background(0);
   if (!img) return;
@@ -118,20 +102,13 @@ function draw() {
 
   depthAmt = depthSlider.value();
 
-  if (mouseIsPressed || touches.length > 0) {
-    targetRotY += movedX * 0.01;
-    targetRotX -= movedY * 0.01;
-    targetRotX = constrain(targetRotX, -PI/2, PI/2);
-  }
-
+  // Rotate camera smoothly
   rotX = lerp(rotX, targetRotX, 0.08);
   rotY = lerp(rotY, targetRotY, 0.08);
-
   rotateX(rotX);
   rotateY(rotY);
 
   dotSize = dotSlider.value();
-
   noStroke();
 
   for (let p of particles) {
@@ -143,22 +120,21 @@ function draw() {
   }
 }
 
-/* ---------------------------
-   SCROLL ZOOM
----------------------------- */
+function mouseDragged() {
+  targetRotY += movedX * 0.01;
+  targetRotX -= movedY * 0.01;
+  targetRotX = constrain(targetRotX, -PI / 2, PI / 2);
+}
+
 function mouseWheel(e) {
   depthAmt += e.delta * -0.001;
   depthAmt = constrain(depthAmt, 0.2, 2.0);
   depthSlider.value(depthAmt);
 }
 
-/* ---------------------------
-   RESIZE
----------------------------- */
 function windowResized() {
   let w = container.offsetWidth;
   let h = container.offsetHeight;
   resizeCanvas(w, h);
-
   if (img) setupParticles();
 }
